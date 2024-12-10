@@ -1,0 +1,17 @@
+---
+- name: Ensure backup directory exists
+  file:
+    path: /backups
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+
+
+- name: Perform database backup
+  shell: >
+    mysqldump -u {{ db_user }} -p{{ db_user_password }} {{ db_name }}
+    > /backups/{{ db_name }}-{{ ansible_date_time.date }}.sql
+  args:
+    executable: /bin/bash
+

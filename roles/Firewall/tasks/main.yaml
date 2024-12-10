@@ -1,0 +1,19 @@
+---
+# Install ufw (Uncomplicated Firewall)
+- name: Install ufw
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+# Allow SSH through the firewall
+- name: Allow SSH through the firewall
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+# Enable and start ufw
+- name: Enable and start ufw
+  ufw:
+    state: enabled
+        

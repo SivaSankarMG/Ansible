@@ -1,0 +1,30 @@
+---
+
+- name: Setup Firewall
+  hosts: all
+  become: true  
+  roles:
+    - Firewall
+    
+- name: Configure Web Servers
+  hosts: web_servers
+  become: true
+  roles:
+    - web_server
+    - compliance
+    - logging
+
+- name: Configure DB Servers
+  hosts: db_servers
+  become: true
+  roles:
+    - database_server
+    - compliance
+    - backup
+
+- name: User Management
+  hosts: all
+  become: true
+  roles:
+    - user_management
+

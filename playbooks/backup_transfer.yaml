@@ -1,0 +1,23 @@
+---
+
+# For this playbook the control node is database_server
+
+- name: Transfer Backup to Backup server
+  hosts: backup_servers
+  remote_user: ubuntu
+  become: true
+  vars:
+    - source_path: source/path/on/db_server
+    - dest_path: dest/path/on/backup_server
+  tasks:
+    - name: Synchronization of backup on the database_server to dest on the backup_server
+      ansible.posix.synchronize:
+        src: "{{ source_path }}"
+        dest: "{{ dest_path }}"
+      register: sync_result 
+        
+    - name: Remove backup copy from database_server if sync is successful 
+      ansible.builtin.file: 
+        path: "{{ source_path }}" 
+        state: absent 
+      when: sync_result is succeeded

@@ -1,0 +1,26 @@
+---
+- name: Disable Root SSH Login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart SSH
+     
+
+
+- name: Update all packages
+  ansible.builtin.apt:
+    upgrade: dist
+
+- name: Enforce Firewall Rules
+  ufw:
+    rule: allow
+    port: "{{ item }}"    
+    proto: tcp
+  loop:
+    - 80
+    - 443
+
+
+
+

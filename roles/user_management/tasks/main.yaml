@@ -1,0 +1,46 @@
+---
+- name: Ensure the 'dev' group exists
+  ansible.builtin.group:
+    name: dev
+    state: present
+
+
+- name: Create Users  
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    state: present
+    groups: "{{ item.groups }}"
+  loop:
+    - name: devops_user1
+      groups: sudo
+    - name: dev_user1
+      groups: dev
+
+
+# autherized_key module is part of the ansible.posix collection 
+# To check whether it is installed, run -> ansible-galaxy collection list.
+# To install it, use: ansible-galaxy collection install ansible.posix
+- name: Set Passwordless Authentication
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ lookup( 'file', item.key ) }}"
+  loop:
+    - name: devops_user1
+      key: /home/ubuntu/.ssh/id_rsa.pub
+
+- name: Ensure the pwquality.conf file exists
+  ansible.builtin.file:
+    path: /etc/security/pwquality.conf
+    state: touch  
+
+
+- name: Set Password Policy
+  lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^{{ item.key }}'
+    line: "{{ item.key }} = {{ item.value }}"
+  loop:
+    - key: minlen
+      value: 8
+    - key: retry
+      value: 3

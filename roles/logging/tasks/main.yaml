@@ -1,0 +1,22 @@
+---
+- name: Install rsyslog
+  ansible.builtin.apt:
+    name: rsyslog
+    state: present
+
+
+# Configure to forward the logs to log_server
+- name: Configure rsyslog
+  lineinfile:
+    path: /etc/rsyslog.conf
+    regexp: '^.*. @'    
+    line: ".*. @{{ log_server }}"   # Ensure log_server is configured to listen the logs.
+  notify: restart rsyslog
+
+
+- name: Ensure ufw allows port 514 to send logs
+  ufw:
+    rule: allow
+    direction: out
+    port: 514
+    proto: udp

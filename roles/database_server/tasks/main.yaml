@@ -1,0 +1,85 @@
+---
+- name: Install Mysequel
+  ansible.builtin.apt:
+    name: mysql-server
+    state: present
+
+- name: Enable and Start Mysql
+  ansible.builtin.service:
+    name: mysql
+    state: started
+    enabled: yes    
+
+- name: Ensure ufw allows MySQL (port 3306)
+  ufw:
+    rule: allow
+    port: 3306
+    proto: tcp
+
+- name: Install python3-dev and libmysqlclient-dev
+  ansible.builtin.apt:
+    name:
+      - python3-dev
+      - libmysqlclient-dev
+    state: present
+    update_cache: yes
+
+
+
+- name: Install pkg-config and MySQL development libraries
+  ansible.builtin.apt:
+    name:
+      - pkg-config
+      - libmysqlclient-dev
+    state: present
+    update_cache: yes
+
+- name: Ensure mysql-client is present
+  apt:
+    name: mysql-client
+    state: present
+    
+
+- name: Secure Mysequel installation
+  ansible.builtin.shell: >
+    mysqladmin -u root password "{{ mysql_root_password }}"
+  when: mysql_root_password is defined
+
+- name: Install python3-venv
+  package:
+    name: python3-venv
+    state: present
+
+
+- name: Create a virtual environment
+  ansible.builtin.command:
+    cmd: python3 -m venv {{ venv_path }}
+    creates: "/{{ venv_path }}/bin/activate"     
+
+- name: Install PyMySQL in the virtual environment
+  pip:
+    name: PyMySQL
+    executable: "/{{ venv_path }}/bin/pip"  # Use pip from the virtual environment   
+    state: present
+
+- name: Set the ansible python interpreter to the virtualenv python
+  set_fact:
+    ansible_python_interpreter: "/{{ venv_path }}/bin/python3.12"
+
+- name: Create DB
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_user: "root"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create DB User
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_user_password }}"
+    priv: "{{ db_name }}.*:ALL" 
+    host: "%"
+    state: present
+    login_user: "root"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    

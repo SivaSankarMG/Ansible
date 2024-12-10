@@ -1,0 +1,34 @@
+---
+- name: Installing packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apache2
+    - php
+    - php-mysql
+    - libapache2-mod-php
+
+- name: Enable and Start Apache
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: yes
+
+# Use the below task if you have domain_name for your website or web_app
+
+#   Certbot is a tool provided by the Electronic Frontier Foundation (EFF) that automates the process of 
+# obtaining SSL/TLS certificates from the Let's Encrypt CA (Certificate Authority)
+
+#- name: Set up SSL/TLS Certificate
+#  ansible.builtin.command: certbot --apache -d "{{ domain_name }}"
+
+- name: Block ports
+  ufw:
+    rule: deny
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - 21
+    - 23
+    - 25
